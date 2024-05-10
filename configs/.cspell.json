@@ -11,6 +11,20 @@
   ],
   "language": "en",
   "noConfigSearch": true,
-  "words": ["megalinter", "oxsecurity"],
+  "words": [
+    "dustinspecker",
+    "godoc",
+    "gomega",
+    "megalinter",
+    "onsi",
+    "oxsecurity",
+    "rere",
+    "rerere",
+    "specker",
+    "stefanzweifel",
+    "struct",
+    "structs",
+    "venv"
+  ],
   "version": "0.2"
 }

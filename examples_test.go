@@ -6,7 +6,7 @@ import (
 	"github.com/dustinspecker/rere"
 )
 
-func ExampleRedactWithAlllowList() {
+func ExampleRedactWithAllowList() {
 	// RedactWithAllowList will redact string and byte slice/array field values for field names not found in allow list
 	type user struct {
 		Username string
