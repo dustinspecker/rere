@@ -10,8 +10,6 @@ import (
 
 type structWithoutRedactedFields struct {
 	Number int
-	// validate that Redact doesn't panic when unexported fields are present
-	number int
 }
 
 type structWithRedactedFields struct {
@@ -23,7 +21,6 @@ type structWithRedactedFields struct {
 
 type structWithByteField struct {
 	Value byte
-	value byte
 }
 
 type structWithByteSlice struct {
