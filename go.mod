@@ -1,6 +1,6 @@
 module github.com/dustinspecker/rere
 
-go 1.22.2
+go 1.21.9
 
 require (
 	github.com/onsi/gomega v1.33.1
