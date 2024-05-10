@@ -1,3 +1,4 @@
+// Package rere redacts sensitive fields through an allow or deny list of field and key names
 package rere
 
 import (
