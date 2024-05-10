@@ -1,0 +1,38 @@
+---
+name: Main
+
+on:
+  push:
+
+  pull_request:
+    branches:
+      - main
+
+permissions: read-all
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  main:
+    name: Main
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Set up Go
+        uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+        with:
+          cache-dependency-path: go.sum
+          go-version-file: go.mod
+
+      - name: Install Go dependencies
+        run: go mod download -x
+
+      - name: Run unit tests
+        run: make test
