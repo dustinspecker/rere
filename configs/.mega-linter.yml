@@ -24,3 +24,6 @@ FILEIO_REPORTER: false
 
 # Uncomment if you want MegaLinter to detect errors but not block CI to pass
 # DISABLE_ERRORS: true
+
+# linter configurations
+SPELL_CSPELL_CONFIG_FILE: ./configs/.cspell.json
