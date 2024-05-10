@@ -1,3 +1,5 @@
+.PHONY: all clean lint serve-docs test
+
 lint:
 	ENABLE_LINTERS=$(ENABLE_LINTERS) ./scripts/lint.sh
 
