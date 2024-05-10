@@ -15,6 +15,8 @@ on:
       - main
       - master
 
+permissions: read-all
+
 # Comment env block if you do not want to apply fixes
 env:
   # Apply linter fixes configuration
@@ -39,13 +41,6 @@ jobs:
   megalinter:
     name: MegaLinter
     runs-on: ubuntu-latest
-
-    # Give the default GITHUB_TOKEN write permission to commit and push, comment
-    # issues, and post new Pull Requests; remove the ones you do not need
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
 
     steps:
       # Git Checkout
