@@ -70,6 +70,7 @@ jobs:
         # All available variables are described in documentation
         # https://megalinter.io/latest/config-file/
         env:
+          MEGALINTER_CONFIG: ./configs/.mega-linter.yml
           # Validates all source when push on main, else just the git diff with
           # main. Override with true if you always want to lint all sources
           #
