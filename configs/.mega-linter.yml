@@ -17,4 +17,5 @@ FILEIO_REPORTER: false
 
 # linter configurations
 COPYPASTE_JSCPD_CONFIG_FILE: ./configs/.jscpd.json
+GO_GOLANGCI_LINT_CONFIG_FILE: ./configs/.golangci.yml
 SPELL_CSPELL_CONFIG_FILE: ./configs/.cspell.json

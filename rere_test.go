@@ -45,6 +45,7 @@ type structWithInterface struct {
 	password any
 }
 
+//nolint:funlen // I'm okay with test functions with several statements of test data
 func TestRedactWithAllowList(t *testing.T) {
 	t.Parallel()
 
@@ -59,6 +60,7 @@ func TestRedactWithAllowList(t *testing.T) {
 			input: structWithoutRedactedFields{
 				Number: 1,
 			},
+			allowList: nil,
 			output: structWithoutRedactedFields{
 				Number: 1,
 			},
@@ -66,10 +68,13 @@ func TestRedactWithAllowList(t *testing.T) {
 		{
 			name: "redacts string fields on structs",
 			input: structWithRedactedFields{
+				Username: "alice",
 				Password: "hunter2",
 				password: "*****",
 			},
+			allowList: nil,
 			output: structWithRedactedFields{
+				Username: "REDACTED",
 				Password: "REDACTED",
 				password: "REDACTED",
 			},
@@ -77,24 +82,37 @@ func TestRedactWithAllowList(t *testing.T) {
 		{
 			name: "does not modify provided input",
 			input: &structWithRedactedFields{
+				Username: "username",
 				Password: "password",
 				password: "password",
 			},
+			allowList: nil,
 			output: &structWithRedactedFields{
+				Username: "REDACTED",
 				Password: "REDACTED",
 				password: "REDACTED",
 			},
 		},
 		{
-			name:   "does not redact empty strings",
-			input:  structWithRedactedFields{},
-			output: structWithRedactedFields{},
+			name: "does not redact empty strings",
+			input: structWithRedactedFields{
+				Username: "",
+				Password: "",
+				password: "",
+			},
+			allowList: nil,
+			output: structWithRedactedFields{
+				Username: "",
+				Password: "",
+				password: "",
+			},
 		},
 		{
 			name: "does not redact byte value",
 			input: structWithByteField{
 				Value: 1,
 			},
+			allowList: nil,
 			output: structWithByteField{
 				Value: 1,
 			},
@@ -105,6 +123,7 @@ func TestRedactWithAllowList(t *testing.T) {
 				Password: []byte("password"),
 				password: []byte("password"),
 			},
+			allowList: nil,
 			output: structWithByteSlice{
 				Password: []byte("REDACTED"),
 				password: []byte("REDACTED"),
@@ -116,6 +135,7 @@ func TestRedactWithAllowList(t *testing.T) {
 				Password: []byte(""),
 				password: nil,
 			},
+			allowList: nil,
 			output: structWithByteSlice{
 				Password: []byte(""),
 				password: nil,
@@ -125,36 +145,43 @@ func TestRedactWithAllowList(t *testing.T) {
 			name: "handles nested structs",
 			input: structWithNestedStruct{
 				Nested: structWithRedactedFields{
+					Username: "username",
 					Password: "password",
 					password: "REDACTED",
 				},
 			},
+			allowList: nil,
 			output: structWithNestedStruct{
 				Nested: structWithRedactedFields{
+					Username: "REDACTED",
 					Password: "REDACTED",
 					password: "REDACTED",
 				},
 			},
 		},
 		{
-			name:   "handles maps",
-			input:  map[string]string{"password": "password"},
-			output: map[string]string{"password": "REDACTED"},
+			name:      "handles maps",
+			input:     map[string]string{"password": "password"},
+			allowList: nil,
+			output:    map[string]string{"password": "REDACTED"},
 		},
 		{
-			name:   "handles strings",
-			input:  "password",
-			output: "REDACTED",
+			name:      "handles strings",
+			input:     "password",
+			allowList: nil,
+			output:    "REDACTED",
 		},
 		{
-			name:   "handles arrays",
-			input:  [1]string{"some_value"},
-			output: [1]string{"REDACTED"},
+			name:      "handles arrays",
+			input:     [1]string{"some_value"},
+			allowList: nil,
+			output:    [1]string{"REDACTED"},
 		},
 		{
-			name:   "handles slices",
-			input:  []string{"password"},
-			output: []string{"REDACTED"},
+			name:      "handles slices",
+			input:     []string{"password"},
+			allowList: nil,
+			output:    []string{"REDACTED"},
 		},
 		{
 			name: "handles complex struct",
@@ -162,16 +189,19 @@ func TestRedactWithAllowList(t *testing.T) {
 				NestedStructs: []structWithNestedStruct{
 					{
 						Nested: structWithRedactedFields{
+							Username: "username",
 							Password: "password",
 							password: "password",
 						},
 					},
 				},
 			},
+			allowList: nil,
 			output: complicatedStruct{
 				NestedStructs: []structWithNestedStruct{
 					{
 						Nested: structWithRedactedFields{
+							Username: "REDACTED",
 							Password: "REDACTED",
 							password: "REDACTED",
 						},
@@ -185,13 +215,16 @@ func TestRedactWithAllowList(t *testing.T) {
 				Password: func() **string {
 					redacted := "REDACTED"
 					redactedPointer := &redacted
+
 					return &redactedPointer
 				}(),
 			},
+			allowList: nil,
 			output: structWithNestedPointer{
 				Password: func() **string {
 					redacted := "REDACTED"
 					redactedPointer := &redacted
+
 					return &redactedPointer
 				}(),
 			},
@@ -202,6 +235,7 @@ func TestRedactWithAllowList(t *testing.T) {
 				Password: "password",
 				password: "password",
 			},
+			allowList: nil,
 			output: structWithInterface{
 				Password: "REDACTED",
 				password: "REDACTED",
@@ -211,10 +245,14 @@ func TestRedactWithAllowList(t *testing.T) {
 			name: "skips redacting fields in allow list",
 			input: structWithRedactedFields{
 				Username: "dustin",
+				Password: "",
+				password: "",
 			},
 			allowList: []string{"Username"},
 			output: structWithRedactedFields{
 				Username: "dustin",
+				Password: "",
+				password: "",
 			},
 		},
 		{
@@ -248,6 +286,7 @@ func TestRedactWithAllowList(t *testing.T) {
 	}
 }
 
+//nolint:funlen // I'm okay with test functions with several statements of test data
 func TestRedactWithDenyList(t *testing.T) {
 	t.Parallel()
 
@@ -258,14 +297,16 @@ func TestRedactWithDenyList(t *testing.T) {
 		output   any
 	}{
 		{
-			name:   "redacts simple []byte value",
-			input:  []byte("hello"),
-			output: []byte("REDACTED"),
+			name:     "redacts simple []byte value",
+			input:    []byte("hello"),
+			denyList: nil,
+			output:   []byte("REDACTED"),
 		},
 		{
-			name:   "redacts simple string value",
-			input:  "hello",
-			output: "REDACTED",
+			name:     "redacts simple string value",
+			input:    "hello",
+			denyList: nil,
+			output:   "REDACTED",
 		},
 		{
 			name: "redacts only field names in deny list",

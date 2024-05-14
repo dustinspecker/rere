@@ -28,9 +28,12 @@ const (
 //
 // RedactWithAllowList will loop through elements in slices and arrays to redact using above approach.
 //
-// If RedactWithAllowList is provided a string or []byte value then it will redact the value with "REDACTED", regardless of the allow list. The same is true when looping through types like []string when when the field name is not in the allow list.
+// If RedactWithAllowList is provided a string or []byte value then it will redact the value with "REDACTED",
+// regardless of the allow list. The same is true when looping through types like []string when the field
+// name is not in the allow list.
 func RedactWithAllowList[T any](value T, allowList []string) T {
 	// create a deep copy of the provided value, so original value is not modified
+	//nolint:forcetypeassert // the type is correct and if not then reprint is broken and will be caught by unit tests
 	deepCopy := reprint.This(value).(T)
 
 	reflectedValue := reflect.ValueOf(&deepCopy)
@@ -51,18 +54,23 @@ func RedactWithAllowList[T any](value T, allowList []string) T {
 //
 // RedactWithDenyList will loop through elements in slices and arrays to redact using above approach.
 //
-// If RedactWithDenyList is provided a string or []byte value then it will redact the value with "REDACTED", regardless of the deny list. The same is true when looping through types like []string when when the field name is in the deny list.
+// If RedactWithDenyList is provided a string or []byte value then it will redact the value with "REDACTED",
+// regardless of the deny list. The same is true when looping through types like []string when the field
+// name is in the deny list.
 //
-// NOTE: It is *STRONGLY* discouraged to use RedactWithDenyList in production code, as it is easy to accidentally miss redacting sensitive information.
-// Example: a struct in v1 has a field name of "Password". In v2, a new field name of "PrivateKey" is added and code is migrated from
-// using "Password" to "PrivateKey". If the deny list is not updated, then the new field, "PrivateKey", will not be redacted.
+// NOTE: It is *STRONGLY* discouraged to use RedactWithDenyList in production code, as it is easy to accidentally
+// miss redacting sensitive information.
+// Example: a struct in v1 has a field name of "Password". In v2, a new field name of "PrivateKey" is added and
+// code is migrated from using "Password" to "PrivateKey". If the deny list is not updated, then the new field,
+// "PrivateKey", will not be redacted.
 //
-// RedactWithAllowList is recommended for production code, as it is more explicit about what fields are not redacted. In the above example,
-// the "PrivateKey" field would be redacted if it is not in the allow list. If a new field like "Organization" is added in v2, but
-// forgotten in the allow list, then the worse case is that the "Organization" field is not redacted, which is less severe than
-// leaking a "PrivateKey" field.
+// RedactWithAllowList is recommended for production code, as it is more explicit about what fields are not redacted.
+// In the above example, the "PrivateKey" field would be redacted if it is not in the allow list. If a new field like
+// "Organization" is added in v2, but forgotten in the allow list, then the worse case is that the "Organization"
+// field is not redacted, which is less severe than leaking a "PrivateKey" field.
 func RedactWithDenyList[T any](value T, denyList []string) T {
 	// create a deep copy of the provided value, so original value is not modified
+	//nolint:forcetypeassert // the type is correct and if not then reprint is broken and will be caught by unit tests
 	deepCopy := reprint.This(value).(T)
 
 	reflectedValue := reflect.ValueOf(&deepCopy)
@@ -75,6 +83,8 @@ func RedactWithDenyList[T any](value T, denyList []string) T {
 
 // If mode is allow then fieldKeyNameList is an allow list.
 // If mode is deny then fieldKeyNameList is a deny list.
+//
+//nolint:cyclop,funlen,gocognit // I think the long switch statement is easier to read than breaking it up
 func redact(value reflect.Value, mode redactMode, fieldKeyNameList []string) {
 	reflectedValueElem := value
 
@@ -91,6 +101,7 @@ func redact(value reflect.Value, mode redactMode, fieldKeyNameList []string) {
 			if reflectedValueElem.Len() != 0 {
 				reflectedValueElem.Set(reflect.ValueOf([]byte(redactedMessage)))
 			}
+
 			break
 		}
 
@@ -134,8 +145,8 @@ func redact(value reflect.Value, mode redactMode, fieldKeyNameList []string) {
 			reflectedValueElem.SetString(redactedMessage)
 		}
 	case reflect.Struct:
-		for i := 0; i < reflectedValueElem.NumField(); i++ {
-			fieldName := reflectedValueElem.Type().Field(i).Name
+		for fieldIndex := 0; fieldIndex < reflectedValueElem.NumField(); fieldIndex++ {
+			fieldName := reflectedValueElem.Type().Field(fieldIndex).Name
 
 			// skip redacting fields in the allow list when in allow mode
 			inAllowList := mode == allow && slices.Contains(fieldKeyNameList, fieldName)
@@ -145,13 +156,35 @@ func redact(value reflect.Value, mode redactMode, fieldKeyNameList []string) {
 				continue
 			}
 
-			field := reflectedValueElem.Field(i)
+			field := reflectedValueElem.Field(fieldIndex)
 
 			// use reflect.NewAt to handle redacted unexported fields
 			redactedValue := reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem()
 
 			redact(redactedValue, mode, fieldKeyNameList)
 		}
-		// ignore other types
+	case reflect.Bool,
+		reflect.Chan,
+		reflect.Complex64,
+		reflect.Complex128,
+		reflect.Float32,
+		reflect.Float64,
+		reflect.Func,
+		reflect.Int,
+		reflect.Int8,
+		reflect.Int16,
+		reflect.Int32,
+		reflect.Int64,
+		reflect.Invalid,
+		reflect.Pointer,
+		reflect.Uint,
+		reflect.Uint8,
+		reflect.Uint16,
+		reflect.Uint32,
+		reflect.Uint64,
+		reflect.Uintptr,
+		reflect.UnsafePointer:
+		// do nothing
+		break
 	}
 }

@@ -1,0 +1,53 @@
+linters:
+  disable:
+    # linters that are already configured in .mega-linter.yml
+    - revive
+
+    # TODO: enable once upgraded to Go 1.22 - disabled to hide warnings
+    - copyloopvar
+    - intrange
+
+    # deprecated linters
+    - deadcode # not maintained and covered by unused
+    - exhaustivestruct # not maintained and covered by exhauststruct
+    - ifshort # repository is deprecated
+    - interfacer # repository is archived
+    - golint # repository is archived and replaced by revive
+    - maligned # repository is archived and replaced by govet
+    - nosnakecase # repository is deprecated and covered by revive
+    - scopelint # repository is deprecated and covered by exportloopref
+    - structcheck # not maintained and covered by unused
+    - varcheck # not maintained and covered by unused
+  enable-all: true
+
+linters-settings:
+  depguard:
+    rules:
+      src:
+        allow:
+          - "$gostd"
+          - "github.com/qdm12/reprint"
+        files:
+          - "$all"
+          - "!$test"
+        list-mode: strict
+      tests:
+        allow:
+          - "$gostd"
+          - "github.com/dustinspecker/rere"
+          - "github.com/onsi/gomega"
+          - "github.com/qdm12/reprint"
+        files:
+          - "**/*_test.go"
+        list-mode: strict
+  ireturn:
+    # configure ireturn with defaults and additionally allow generic return types
+    allow:
+      - anon
+      - empty
+      - error
+      - generic
+      - stdlib
+  varnamelen:
+    ignore-names:
+      - g # g is used for gomega in tests
