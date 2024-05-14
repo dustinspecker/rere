@@ -115,7 +115,7 @@ the "PrivateKey" field would be redacted if it is not in the allow list. If a ne
 forgotten in the allow list, then the worse case is that the "Organization" field is redacted by accident, which is less severe than
 leaking a "PrivateKey" field.
 
-## More examples
+### More examples
 
 More examples can be found in [examples_test.go](examples_test.go).
 
