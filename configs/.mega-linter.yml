@@ -6,6 +6,11 @@
 # all, none, or list of linter keys
 APPLY_FIXES: all
 
+DISABLE_LINTERS:
+  # devskim is probably going to be removed in MegaLinter v8, so don't bother addressing permission issues
+  # https://github.com/oxsecurity/megalinter/issues/2849
+  - REPOSITORY_DEVSKIM
+
 SHOW_ELAPSED_TIME: true
 
 FILEIO_REPORTER: false
