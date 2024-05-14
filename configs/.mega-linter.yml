@@ -7,6 +7,10 @@
 APPLY_FIXES: all
 
 DISABLE_LINTERS:
+  # TODO: enable once MegaLinter upgrades with fix for:
+  # https://github.com/tcort/markdown-link-check/issues/304
+  - MARKDOWN_MARKDOWN_LINK_CHECK
+
   # devskim is probably going to be removed in MegaLinter v8, so don't bother addressing permission issues
   # https://github.com/oxsecurity/megalinter/issues/2849
   - REPOSITORY_DEVSKIM
