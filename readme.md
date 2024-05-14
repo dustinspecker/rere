@@ -106,9 +106,9 @@ func main() {
 Example: a struct in v1 has a field name of "Password". In v2, a new field name of "PrivateKey" is added and code is migrated from
 using "Password" to "PrivateKey". If the deny list is not updated, then the new field, "PrivateKey", will not be redacted.
 
-`RedactWithAllowList` is recommended for production code, as it is more explicit about what fields are not redacted. In the above example,
+`RedactWithAllowList` is recommended for production code, as it is more explicit about what fields are not redacted. In the previous example,
 the "PrivateKey" field would be redacted if it is not in the allow list. If a new field like "Organization" is added in v2, but
-forgotten in the allow list, then the worse case is that the "Organization" field is not redacted, which is less severe than
+forgotten in the allow list, then the worse case is that the "Organization" field is redacted by accident, which is less severe than
 leaking a "PrivateKey" field.
 
 ## More examples
