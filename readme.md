@@ -23,7 +23,7 @@ go get github.com/dustinspecker/rere
 rere has two functions it supports, `RedactWithAllowList` and `RedactWithDenyList`.
 
 `RedactWithAllowList` will redact every `string` and `[]byte` it finds in a provided array, map, slice, or struct. It will not
-redact any field or key names are are provided in an allow list.
+redact any field or key names that are provided in an allow list.
 
 `RedactWithDenyList` will skip redacting every `string` and `[]byte` it finds in a provided array, map, slice, or struct. It will
 redact any field or key names are are provided in a deny list.
