@@ -26,6 +26,8 @@ func ExampleRedactWithAllowList() {
 	fmt.Printf("redacted string field value: %+v\n", redactedUser)
 
 	// RedactWithAllowList will not modify the original value - perfect for logging
+	// RedactWithAllowList does not require a pointer. This is just to help further exemplify the point
+	// that the original value is left unchanged.
 	redactedUserPointer := rere.RedactWithAllowList(&testUser, allowList)
 	fmt.Printf("redacted string field value on pointer to struct: %+v\n", *redactedUserPointer)
 	fmt.Printf("original value left unchanged: %+v\n", testUser)
@@ -56,6 +58,8 @@ func ExampleRedactWithDenyList() {
 	fmt.Printf("redacted string field value: %+v\n", redactedUser)
 
 	// RedactWithDenyList will not modify the original value - perfect for logging
+	// RedactWithDenyList does not require a pointer. This is just to help further exemplify the point
+	// that the original value is left unchanged.
 	redactedUserPointer := rere.RedactWithDenyList(&testUser, denyList)
 	fmt.Printf("redacted string field value on pointer to struct: %+v\n", *redactedUserPointer)
 	fmt.Printf("original value left unchanged: %+v\n", testUser)
