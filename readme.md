@@ -18,7 +18,23 @@ Install rere by running:
 go get github.com/dustinspecker/rere
 ```
 
-## Example using an allow list
+## Usage
+
+rere has two functions it supports, `RedactWithAllowList` and `RedactWithDenyList`.
+
+`RedactWithAllowList` will redact every `string` and `[]byte` it finds in a provided array, map, slice, or struct. It will not
+redact any field or key names are are provided in an allow list.
+
+`RedactWithDenyList` will skip redacting every `string` and `[]byte` it finds in a provided array, map, slice, or struct. It will
+redact any field or key names are are provided in a deny list.
+
+Both of these functions create a deep copy to avoid modifying the original value.
+
+It is strongly recommended to only use `RedactWithAllowList` since it will prevent accidental leaks of sensitive information. Please
+read the warning in [Example using a deny list](#example-using-a-deny-list) for more information.
+
+### Example using an allow list
+
 
 An example of typical usage of `rere.RedactWithAllowList` is:
 
@@ -52,7 +68,7 @@ func main() {
 }
 ```
 
-## Example using a deny list
+### Example using a deny list
 
 An example of typical usage of `rere.RedactWithDenyList` is:
 
