@@ -124,7 +124,7 @@ func redact(value reflect.Value, mode redactMode, fieldKeyNameList []string) {
 
 			// skip redacting keys in the allow list when in allow mode
 			inAllowList := mode == allow && slices.Contains(fieldKeyNameList, keyName)
-			// skip redacting fields not in the deny list when in deny mode
+			// skip redacting keys not in the deny list when in deny mode
 			notInDenyList := mode == deny && !slices.Contains(fieldKeyNameList, keyName)
 			if inAllowList || notInDenyList {
 				continue
