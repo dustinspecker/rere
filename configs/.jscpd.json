@@ -1,5 +1,5 @@
 {
-  "minLines": 15,
+  "minLines": 30,
   "reporters": ["html", "markdown"],
   "ignore": [
     "**/node_modules/**",

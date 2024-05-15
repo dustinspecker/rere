@@ -153,19 +153,26 @@ func redact(value reflect.Value, mode redactMode, fieldKeyNameList []string) {
 		for fieldIndex := 0; fieldIndex < reflectedValueElem.NumField(); fieldIndex++ {
 			fieldName := reflectedValueElem.Type().Field(fieldIndex).Name
 
-			// skip redacting fields in the allow list when in allow mode
-			inAllowList := mode == allow && slices.ContainsFunc(fieldKeyNameList, func(allowedField string) bool {
-				return strings.EqualFold(allowedField, fieldName)
-			})
-			// skip redacting fields not in the deny list when in deny mode
-			notInDenyList := mode == deny && !slices.ContainsFunc(fieldKeyNameList, func(deniedField string) bool {
-				return strings.EqualFold(deniedField, fieldName)
-			})
-			if inAllowList || notInDenyList {
-				continue
-			}
-
 			field := reflectedValueElem.Field(fieldIndex)
+
+			var (
+				isStringType    = field.Kind() == reflect.String
+				isByteSliceType = field.Kind() == reflect.Slice && field.Type().Elem().Kind() == reflect.Uint8
+			)
+
+			if isStringType || isByteSliceType {
+				// skip redacting fields in the allow list when in allow mode
+				inAllowList := mode == allow && slices.ContainsFunc(fieldKeyNameList, func(allowedField string) bool {
+					return strings.EqualFold(allowedField, fieldName)
+				})
+				// skip redacting fields not in the deny list when in deny mode
+				notInDenyList := mode == deny && !slices.ContainsFunc(fieldKeyNameList, func(deniedField string) bool {
+					return strings.EqualFold(deniedField, fieldName)
+				})
+				if inAllowList || notInDenyList {
+					continue
+				}
+			}
 
 			// use reflect.NewAt to handle redacted unexported fields
 			redactedValue := reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem()

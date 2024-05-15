@@ -16,8 +16,9 @@ type structWithRedactedFields struct {
 	Username string
 	Password string
 	// validate Redacts handles unexported fields
-	password string
-	username string
+	password  string
+	username  string
+	byteSlice []byte
 }
 
 type structWithByteField struct {
@@ -69,49 +70,55 @@ func TestRedactWithAllowList(t *testing.T) {
 		{
 			name: "redacts string fields on structs",
 			input: structWithRedactedFields{
-				Username: "alice",
-				username: "bob",
-				Password: "hunter2",
-				password: "*****",
+				Username:  "alice",
+				username:  "bob",
+				Password:  "hunter2",
+				password:  "*****",
+				byteSlice: nil,
 			},
 			allowList: nil,
 			output: structWithRedactedFields{
-				Username: "REDACTED",
-				username: "REDACTED",
-				Password: "REDACTED",
-				password: "REDACTED",
+				Username:  "REDACTED",
+				username:  "REDACTED",
+				Password:  "REDACTED",
+				password:  "REDACTED",
+				byteSlice: nil,
 			},
 		},
 		{
 			name: "does not modify provided input",
 			input: &structWithRedactedFields{
-				Username: "username",
-				username: "username",
-				Password: "password",
-				password: "password",
+				Username:  "username",
+				username:  "username",
+				Password:  "password",
+				password:  "password",
+				byteSlice: nil,
 			},
 			allowList: nil,
 			output: &structWithRedactedFields{
-				Username: "REDACTED",
-				username: "REDACTED",
-				Password: "REDACTED",
-				password: "REDACTED",
+				Username:  "REDACTED",
+				username:  "REDACTED",
+				Password:  "REDACTED",
+				password:  "REDACTED",
+				byteSlice: nil,
 			},
 		},
 		{
 			name: "does not redact empty strings",
 			input: structWithRedactedFields{
-				Username: "",
-				username: "",
-				Password: "",
-				password: "",
+				Username:  "",
+				username:  "",
+				Password:  "",
+				password:  "",
+				byteSlice: nil,
 			},
 			allowList: nil,
 			output: structWithRedactedFields{
-				Username: "",
-				username: "",
-				Password: "",
-				password: "",
+				Username:  "",
+				username:  "",
+				Password:  "",
+				password:  "",
+				byteSlice: nil,
 			},
 		},
 		{
@@ -152,19 +159,21 @@ func TestRedactWithAllowList(t *testing.T) {
 			name: "handles nested structs",
 			input: structWithNestedStruct{
 				Nested: structWithRedactedFields{
-					Username: "username",
-					username: "username",
-					Password: "password",
-					password: "REDACTED",
+					Username:  "username",
+					username:  "username",
+					Password:  "password",
+					password:  "REDACTED",
+					byteSlice: nil,
 				},
 			},
 			allowList: nil,
 			output: structWithNestedStruct{
 				Nested: structWithRedactedFields{
-					Username: "REDACTED",
-					username: "REDACTED",
-					Password: "REDACTED",
-					password: "REDACTED",
+					Username:  "REDACTED",
+					username:  "REDACTED",
+					Password:  "REDACTED",
+					password:  "REDACTED",
+					byteSlice: nil,
 				},
 			},
 		},
@@ -198,10 +207,11 @@ func TestRedactWithAllowList(t *testing.T) {
 				NestedStructs: []structWithNestedStruct{
 					{
 						Nested: structWithRedactedFields{
-							Username: "username",
-							username: "username",
-							Password: "password",
-							password: "password",
+							Username:  "username",
+							username:  "username",
+							Password:  "password",
+							password:  "password",
+							byteSlice: nil,
 						},
 					},
 				},
@@ -211,10 +221,11 @@ func TestRedactWithAllowList(t *testing.T) {
 				NestedStructs: []structWithNestedStruct{
 					{
 						Nested: structWithRedactedFields{
-							Username: "REDACTED",
-							username: "REDACTED",
-							Password: "REDACTED",
-							password: "REDACTED",
+							Username:  "REDACTED",
+							username:  "REDACTED",
+							Password:  "REDACTED",
+							password:  "REDACTED",
+							byteSlice: nil,
 						},
 					},
 				},
@@ -255,17 +266,19 @@ func TestRedactWithAllowList(t *testing.T) {
 		{
 			name: "skips redacting fields in allow list regardless of case",
 			input: structWithRedactedFields{
-				Username: "dustin",
-				Password: "",
-				password: "",
-				username: "dustin",
+				Username:  "dustin",
+				Password:  "",
+				password:  "",
+				username:  "dustin",
+				byteSlice: nil,
 			},
 			allowList: []string{"Username"},
 			output: structWithRedactedFields{
-				Username: "dustin",
-				Password: "",
-				password: "",
-				username: "dustin",
+				Username:  "dustin",
+				Password:  "",
+				password:  "",
+				username:  "dustin",
+				byteSlice: nil,
 			},
 		},
 		{
@@ -280,6 +293,28 @@ func TestRedactWithAllowList(t *testing.T) {
 				"Username": "dustin",
 				"username": "dustin",
 				"Password": "REDACTED",
+			},
+		},
+		{
+			name: "redacts nested structs",
+			input: structWithNestedStruct{
+				Nested: structWithRedactedFields{
+					Username:  "username",
+					username:  "username",
+					Password:  "password",
+					password:  "password",
+					byteSlice: []byte("password"),
+				},
+			},
+			allowList: []string{"username", "byteslice"},
+			output: structWithNestedStruct{
+				Nested: structWithRedactedFields{
+					Username:  "username",
+					username:  "username",
+					Password:  "REDACTED",
+					password:  "REDACTED",
+					byteSlice: []byte("password"),
+				},
 			},
 		},
 	}
@@ -326,17 +361,19 @@ func TestRedactWithDenyList(t *testing.T) {
 		{
 			name: "redacts only field names in deny list regardless of case",
 			input: structWithRedactedFields{
-				Username: "username",
-				username: "username",
-				Password: "password",
-				password: "password",
+				Username:  "username",
+				username:  "username",
+				Password:  "password",
+				password:  "password",
+				byteSlice: nil,
 			},
 			denyList: []string{"Password"},
 			output: structWithRedactedFields{
-				Username: "username",
-				username: "username",
-				Password: "REDACTED",
-				password: "REDACTED",
+				Username:  "username",
+				username:  "username",
+				Password:  "REDACTED",
+				password:  "REDACTED",
+				byteSlice: nil,
 			},
 		},
 		{
@@ -351,6 +388,28 @@ func TestRedactWithDenyList(t *testing.T) {
 				"Username": "username",
 				"Password": "REDACTED",
 				"password": "REDACTED",
+			},
+		},
+		{
+			name: "redacts nested structs",
+			input: structWithNestedStruct{
+				Nested: structWithRedactedFields{
+					Username:  "username",
+					username:  "username",
+					Password:  "password",
+					password:  "password",
+					byteSlice: []byte("password"),
+				},
+			},
+			denyList: []string{"password"},
+			output: structWithNestedStruct{
+				Nested: structWithRedactedFields{
+					Username:  "username",
+					username:  "username",
+					Password:  "REDACTED",
+					password:  "REDACTED",
+					byteSlice: []byte("password"),
+				},
 			},
 		},
 	}

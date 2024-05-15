@@ -12,6 +12,7 @@
   "language": "en",
   "noConfigSearch": true,
   "words": [
+    "byteslice",
     "copyloopvar",
     "cyclop",
     "deadcode",
