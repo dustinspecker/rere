@@ -21,7 +21,8 @@ func ExampleRedactWithAllowList() {
 		Key:      []byte("another secret"),
 		IsAdmin:  true,
 	}
-	allowList := []string{"Username"}
+	// allowList is matched against case insensitively
+	allowList := []string{"username"}
 	redactedUser := rere.RedactWithAllowList(testUser, allowList)
 	fmt.Printf("redacted string field value: %+v\n", redactedUser)
 
@@ -53,7 +54,8 @@ func ExampleRedactWithDenyList() {
 		Key:      []byte("another secret"),
 		IsAdmin:  true,
 	}
-	denyList := []string{"Password", "Key"}
+	// denyList is matched against case insensitively
+	denyList := []string{"password", "Key"}
 	redactedUser := rere.RedactWithDenyList(testUser, denyList)
 	fmt.Printf("redacted string field value: %+v\n", redactedUser)
 

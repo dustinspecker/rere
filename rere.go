@@ -4,6 +4,7 @@ package rere
 import (
 	"reflect"
 	"slices"
+	"strings"
 	"unsafe"
 
 	"github.com/qdm12/reprint"
@@ -123,9 +124,13 @@ func redact(value reflect.Value, mode redactMode, fieldKeyNameList []string) {
 			keyName := key.String()
 
 			// skip redacting keys in the allow list when in allow mode
-			inAllowList := mode == allow && slices.Contains(fieldKeyNameList, keyName)
+			inAllowList := mode == allow && slices.ContainsFunc(fieldKeyNameList, func(allowedKey string) bool {
+				return strings.EqualFold(allowedKey, keyName)
+			})
 			// skip redacting keys not in the deny list when in deny mode
-			notInDenyList := mode == deny && !slices.Contains(fieldKeyNameList, keyName)
+			notInDenyList := mode == deny && !slices.ContainsFunc(fieldKeyNameList, func(deniedKey string) bool {
+				return strings.EqualFold(deniedKey, keyName)
+			})
 			if inAllowList || notInDenyList {
 				continue
 			}
@@ -149,9 +154,13 @@ func redact(value reflect.Value, mode redactMode, fieldKeyNameList []string) {
 			fieldName := reflectedValueElem.Type().Field(fieldIndex).Name
 
 			// skip redacting fields in the allow list when in allow mode
-			inAllowList := mode == allow && slices.Contains(fieldKeyNameList, fieldName)
+			inAllowList := mode == allow && slices.ContainsFunc(fieldKeyNameList, func(allowedField string) bool {
+				return strings.EqualFold(allowedField, fieldName)
+			})
 			// skip redacting fields not in the deny list when in deny mode
-			notInDenyList := mode == deny && !slices.Contains(fieldKeyNameList, fieldName)
+			notInDenyList := mode == deny && !slices.ContainsFunc(fieldKeyNameList, func(deniedField string) bool {
+				return strings.EqualFold(deniedField, fieldName)
+			})
 			if inAllowList || notInDenyList {
 				continue
 			}

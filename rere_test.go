@@ -17,6 +17,7 @@ type structWithRedactedFields struct {
 	Password string
 	// validate Redacts handles unexported fields
 	password string
+	username string
 }
 
 type structWithByteField struct {
@@ -69,12 +70,14 @@ func TestRedactWithAllowList(t *testing.T) {
 			name: "redacts string fields on structs",
 			input: structWithRedactedFields{
 				Username: "alice",
+				username: "bob",
 				Password: "hunter2",
 				password: "*****",
 			},
 			allowList: nil,
 			output: structWithRedactedFields{
 				Username: "REDACTED",
+				username: "REDACTED",
 				Password: "REDACTED",
 				password: "REDACTED",
 			},
@@ -83,12 +86,14 @@ func TestRedactWithAllowList(t *testing.T) {
 			name: "does not modify provided input",
 			input: &structWithRedactedFields{
 				Username: "username",
+				username: "username",
 				Password: "password",
 				password: "password",
 			},
 			allowList: nil,
 			output: &structWithRedactedFields{
 				Username: "REDACTED",
+				username: "REDACTED",
 				Password: "REDACTED",
 				password: "REDACTED",
 			},
@@ -97,12 +102,14 @@ func TestRedactWithAllowList(t *testing.T) {
 			name: "does not redact empty strings",
 			input: structWithRedactedFields{
 				Username: "",
+				username: "",
 				Password: "",
 				password: "",
 			},
 			allowList: nil,
 			output: structWithRedactedFields{
 				Username: "",
+				username: "",
 				Password: "",
 				password: "",
 			},
@@ -146,6 +153,7 @@ func TestRedactWithAllowList(t *testing.T) {
 			input: structWithNestedStruct{
 				Nested: structWithRedactedFields{
 					Username: "username",
+					username: "username",
 					Password: "password",
 					password: "REDACTED",
 				},
@@ -154,6 +162,7 @@ func TestRedactWithAllowList(t *testing.T) {
 			output: structWithNestedStruct{
 				Nested: structWithRedactedFields{
 					Username: "REDACTED",
+					username: "REDACTED",
 					Password: "REDACTED",
 					password: "REDACTED",
 				},
@@ -190,6 +199,7 @@ func TestRedactWithAllowList(t *testing.T) {
 					{
 						Nested: structWithRedactedFields{
 							Username: "username",
+							username: "username",
 							Password: "password",
 							password: "password",
 						},
@@ -202,6 +212,7 @@ func TestRedactWithAllowList(t *testing.T) {
 					{
 						Nested: structWithRedactedFields{
 							Username: "REDACTED",
+							username: "REDACTED",
 							Password: "REDACTED",
 							password: "REDACTED",
 						},
@@ -242,28 +253,32 @@ func TestRedactWithAllowList(t *testing.T) {
 			},
 		},
 		{
-			name: "skips redacting fields in allow list",
+			name: "skips redacting fields in allow list regardless of case",
 			input: structWithRedactedFields{
 				Username: "dustin",
 				Password: "",
 				password: "",
+				username: "dustin",
 			},
 			allowList: []string{"Username"},
 			output: structWithRedactedFields{
 				Username: "dustin",
 				Password: "",
 				password: "",
+				username: "dustin",
 			},
 		},
 		{
-			name: "skips redacting keys in allow list",
+			name: "skips redacting keys in allow list regardless of case",
 			input: map[string]string{
 				"Username": "dustin",
+				"username": "dustin",
 				"Password": "password",
 			},
 			allowList: []string{"Username"},
 			output: map[string]string{
 				"Username": "dustin",
+				"username": "dustin",
 				"Password": "REDACTED",
 			},
 		},
@@ -309,27 +324,29 @@ func TestRedactWithDenyList(t *testing.T) {
 			output:   "REDACTED",
 		},
 		{
-			name: "redacts only field names in deny list",
+			name: "redacts only field names in deny list regardless of case",
 			input: structWithRedactedFields{
 				Username: "username",
+				username: "username",
 				Password: "password",
 				password: "password",
 			},
-			denyList: []string{"Password", "password"},
+			denyList: []string{"Password"},
 			output: structWithRedactedFields{
 				Username: "username",
+				username: "username",
 				Password: "REDACTED",
 				password: "REDACTED",
 			},
 		},
 		{
-			name: "redacts only key names in deny list",
+			name: "redacts only key names in deny list regardless of case",
 			input: map[string]string{
 				"Username": "username",
 				"Password": "password",
 				"password": "password",
 			},
-			denyList: []string{"Password", "password"},
+			denyList: []string{"password"},
 			output: map[string]string{
 				"Username": "username",
 				"Password": "REDACTED",

@@ -53,6 +53,7 @@ func main() {
   Key:      []byte("another secret"),
   IsAdmin:  true,
  }
+ // allowList is matched against case insensitively
  allowList := []string{"Username"}
  redactedUser := rere.RedactWithAllowList(u, allowList)
  fmt.Printf("redacted string field value: %+v\n", redactedUser)
@@ -89,6 +90,7 @@ func main() {
   Key:      []byte("another secret"),
   IsAdmin:  true,
  }
+ // denyList is matched against case insensitively
  denyList := []string{"Password", "Key"}
  redactedUser := rere.RedactWithDenyList(u, denyList)
  fmt.Printf("redacted string field value: %+v\n", redactedUser)
@@ -127,8 +129,8 @@ rere redacts values by the following process:
 1. Traverse through any pointers to retrieve actual element value
 1. Iterate and recurse through the element's struct fields, map keys, and slice/array elements
 1. Use reflection to redact any field or key values that are `string` or `[]byte`
-   1. For `RedactWithAllowList`, if a field or key name is found in the allow list, then the value is left unchanged
-   1. For `RedactWithDenyList`, if a field or key name is not found in the deny list, then the value is left unchanged
+   1. For `RedactWithAllowList`, if a field or key name is found in the allow list (case insensitive), then the value is left unchanged
+   1. For `RedactWithDenyList`, if a field or key name is not found in the deny list (case insensitive), then the value is left unchanged
 
 ## Why the name rere?
 
