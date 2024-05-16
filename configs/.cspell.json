@@ -35,6 +35,7 @@
     "gomega",
     "gostd",
     "govet",
+    "maintidx",
     "megalinter",
     "nolint",
     "nosnakecase",

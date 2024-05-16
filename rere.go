@@ -40,7 +40,7 @@ func RedactWithAllowList[T any](value T, allowList []string) T {
 	reflectedValue := reflect.ValueOf(&deepCopy)
 
 	// redact all redacted field types
-	redact(reflectedValue, allow, allowList)
+	redact("", reflectedValue, allow, allowList)
 
 	return deepCopy
 }
@@ -77,7 +77,7 @@ func RedactWithDenyList[T any](value T, denyList []string) T {
 	reflectedValue := reflect.ValueOf(&deepCopy)
 
 	// redact all redacted field types
-	redact(reflectedValue, deny, denyList)
+	redact("", reflectedValue, deny, denyList)
 
 	return deepCopy
 }
@@ -85,8 +85,8 @@ func RedactWithDenyList[T any](value T, denyList []string) T {
 // If mode is allow then fieldKeyNameList is an allow list.
 // If mode is deny then fieldKeyNameList is a deny list.
 //
-//nolint:cyclop,funlen,gocognit // I think the long switch statement is easier to read than breaking it up
-func redact(value reflect.Value, mode redactMode, fieldKeyNameList []string) {
+//nolint:cyclop,funlen // I think the long switch statement is easier to read than breaking it up
+func redact(fieldKeyName string, value reflect.Value, mode redactMode, fieldKeyNameList []string) {
 	reflectedValueElem := value
 
 	// recurse through pointers to find actual value
@@ -99,7 +99,7 @@ func redact(value reflect.Value, mode redactMode, fieldKeyNameList []string) {
 		// handle byte slice/array
 		if reflectedValueElem.Type().Elem().Kind() == reflect.Uint8 {
 			// only redact non-empty byte slice values
-			if reflectedValueElem.Len() != 0 {
+			if reflectedValueElem.Len() != 0 && shouldRedact(fieldKeyName, mode, fieldKeyNameList) {
 				reflectedValueElem.Set(reflect.ValueOf([]byte(redactedMessage)))
 			}
 
@@ -108,7 +108,7 @@ func redact(value reflect.Value, mode redactMode, fieldKeyNameList []string) {
 
 		// otherwise loop through elements
 		for i := 0; i < reflectedValueElem.Len(); i++ {
-			redact(reflectedValueElem.Index(i), mode, fieldKeyNameList)
+			redact(fieldKeyName, reflectedValueElem.Index(i), mode, fieldKeyNameList)
 		}
 	case reflect.Interface:
 		element := reflectedValueElem.Elem()
@@ -116,29 +116,25 @@ func redact(value reflect.Value, mode redactMode, fieldKeyNameList []string) {
 		redactedValue := reflect.New(element.Type())
 		redactedValue.Elem().Set(element)
 
-		redact(redactedValue, mode, fieldKeyNameList)
+		redact(fieldKeyName, redactedValue, mode, fieldKeyNameList)
 
 		reflectedValueElem.Set(redactedValue.Elem())
 	case reflect.Map:
 		for _, key := range reflectedValueElem.MapKeys() {
 			keyName := key.String()
 
-			if !shouldRedact(keyName, mode, fieldKeyNameList) {
-				continue
-			}
-
 			element := reflectedValueElem.MapIndex(key)
 
 			redactedValue := reflect.New(element.Type())
 			redactedValue.Elem().Set(element)
 
-			redact(redactedValue, mode, fieldKeyNameList)
+			redact(keyName, redactedValue, mode, fieldKeyNameList)
 
 			reflectedValueElem.SetMapIndex(key, redactedValue.Elem())
 		}
 	case reflect.String:
 		// only redact non-empty string values
-		if !reflectedValueElem.IsZero() {
+		if !reflectedValueElem.IsZero() && shouldRedact(fieldKeyName, mode, fieldKeyNameList) {
 			reflectedValueElem.SetString(redactedMessage)
 		}
 	case reflect.Struct:
@@ -147,21 +143,10 @@ func redact(value reflect.Value, mode redactMode, fieldKeyNameList []string) {
 
 			field := reflectedValueElem.Field(fieldIndex)
 
-			var (
-				isStringType    = field.Kind() == reflect.String
-				isByteSliceType = field.Kind() == reflect.Slice && field.Type().Elem().Kind() == reflect.Uint8
-			)
-
-			if isStringType || isByteSliceType {
-				if !shouldRedact(fieldName, mode, fieldKeyNameList) {
-					continue
-				}
-			}
-
 			// use reflect.NewAt to handle redacted unexported fields
 			redactedValue := reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem()
 
-			redact(redactedValue, mode, fieldKeyNameList)
+			redact(fieldName, redactedValue, mode, fieldKeyNameList)
 		}
 	case reflect.Bool,
 		reflect.Chan,
@@ -190,6 +175,12 @@ func redact(value reflect.Value, mode redactMode, fieldKeyNameList []string) {
 }
 
 func shouldRedact(fieldKeyName string, mode redactMode, fieldKeyNameList []string) bool {
+	// redact when no field name
+	// no field name means user provided a string or we're looping through a []string
+	if fieldKeyName == "" {
+		return true
+	}
+
 	// skip redacting fields in the allow list when in allow mode
 	inAllowList := mode == allow && slices.ContainsFunc(fieldKeyNameList, func(allowedField string) bool {
 		return strings.EqualFold(allowedField, fieldKeyName)
