@@ -24,6 +24,7 @@
     "exportloopref",
     "forcetypeassert",
     "funlen",
+    "goconst",
     "ifshort",
     "interfacer",
     "intrange",
