@@ -19,6 +19,7 @@ type structWithRedactedFields struct {
 	password  string
 	username  string
 	byteSlice []byte
+	stringPtr *string
 }
 
 type structWithByteField struct {
@@ -47,7 +48,7 @@ type structWithInterface struct {
 	password any
 }
 
-//nolint:funlen // I'm okay with test functions with several statements of test data
+//nolint:funlen,maintidx // I'm okay with test functions with several statements of test data
 func TestRedactWithAllowList(t *testing.T) {
 	t.Parallel()
 
@@ -75,6 +76,7 @@ func TestRedactWithAllowList(t *testing.T) {
 				Password:  "hunter2",
 				password:  "*****",
 				byteSlice: nil,
+				stringPtr: nil,
 			},
 			allowList: nil,
 			output: structWithRedactedFields{
@@ -83,6 +85,7 @@ func TestRedactWithAllowList(t *testing.T) {
 				Password:  "REDACTED",
 				password:  "REDACTED",
 				byteSlice: nil,
+				stringPtr: nil,
 			},
 		},
 		{
@@ -93,6 +96,7 @@ func TestRedactWithAllowList(t *testing.T) {
 				Password:  "password",
 				password:  "password",
 				byteSlice: nil,
+				stringPtr: nil,
 			},
 			allowList: nil,
 			output: &structWithRedactedFields{
@@ -101,6 +105,7 @@ func TestRedactWithAllowList(t *testing.T) {
 				Password:  "REDACTED",
 				password:  "REDACTED",
 				byteSlice: nil,
+				stringPtr: nil,
 			},
 		},
 		{
@@ -111,6 +116,7 @@ func TestRedactWithAllowList(t *testing.T) {
 				Password:  "",
 				password:  "",
 				byteSlice: nil,
+				stringPtr: nil,
 			},
 			allowList: nil,
 			output: structWithRedactedFields{
@@ -119,6 +125,7 @@ func TestRedactWithAllowList(t *testing.T) {
 				Password:  "",
 				password:  "",
 				byteSlice: nil,
+				stringPtr: nil,
 			},
 		},
 		{
@@ -164,6 +171,7 @@ func TestRedactWithAllowList(t *testing.T) {
 					Password:  "password",
 					password:  "REDACTED",
 					byteSlice: nil,
+					stringPtr: nil,
 				},
 			},
 			allowList: nil,
@@ -174,6 +182,7 @@ func TestRedactWithAllowList(t *testing.T) {
 					Password:  "REDACTED",
 					password:  "REDACTED",
 					byteSlice: nil,
+					stringPtr: nil,
 				},
 			},
 		},
@@ -212,6 +221,7 @@ func TestRedactWithAllowList(t *testing.T) {
 							Password:  "password",
 							password:  "password",
 							byteSlice: nil,
+							stringPtr: nil,
 						},
 					},
 				},
@@ -226,6 +236,7 @@ func TestRedactWithAllowList(t *testing.T) {
 							Password:  "REDACTED",
 							password:  "REDACTED",
 							byteSlice: nil,
+							stringPtr: nil,
 						},
 					},
 				},
@@ -271,6 +282,7 @@ func TestRedactWithAllowList(t *testing.T) {
 				password:  "",
 				username:  "dustin",
 				byteSlice: nil,
+				stringPtr: nil,
 			},
 			allowList: []string{"Username"},
 			output: structWithRedactedFields{
@@ -279,6 +291,7 @@ func TestRedactWithAllowList(t *testing.T) {
 				password:  "",
 				username:  "dustin",
 				byteSlice: nil,
+				stringPtr: nil,
 			},
 		},
 		{
@@ -304,6 +317,7 @@ func TestRedactWithAllowList(t *testing.T) {
 					Password:  "password",
 					password:  "password",
 					byteSlice: []byte("password"),
+					stringPtr: nil,
 				},
 			},
 			allowList: []string{"username", "byteslice"},
@@ -314,6 +328,7 @@ func TestRedactWithAllowList(t *testing.T) {
 					Password:  "REDACTED",
 					password:  "REDACTED",
 					byteSlice: []byte("password"),
+					stringPtr: nil,
 				},
 			},
 		},
@@ -366,6 +381,7 @@ func TestRedactWithDenyList(t *testing.T) {
 				Password:  "password",
 				password:  "password",
 				byteSlice: nil,
+				stringPtr: nil,
 			},
 			denyList: []string{"Password"},
 			output: structWithRedactedFields{
@@ -374,6 +390,7 @@ func TestRedactWithDenyList(t *testing.T) {
 				Password:  "REDACTED",
 				password:  "REDACTED",
 				byteSlice: nil,
+				stringPtr: nil,
 			},
 		},
 		{
@@ -399,6 +416,11 @@ func TestRedactWithDenyList(t *testing.T) {
 					Password:  "password",
 					password:  "password",
 					byteSlice: []byte("password"),
+					stringPtr: func() *string {
+						password := "password"
+
+						return &password
+					}(),
 				},
 			},
 			denyList: []string{"password"},
@@ -409,6 +431,11 @@ func TestRedactWithDenyList(t *testing.T) {
 					Password:  "REDACTED",
 					password:  "REDACTED",
 					byteSlice: []byte("password"),
+					stringPtr: func() *string {
+						password := "password"
+
+						return &password
+					}(),
 				},
 			},
 		},
