@@ -26,4 +26,5 @@ POST_COMMANDS:
 # linter configurations
 COPYPASTE_JSCPD_CONFIG_FILE: ./configs/.jscpd.json
 GO_GOLANGCI_LINT_CONFIG_FILE: ./configs/.golangci.yml
+REPOSITORY_GITLEAKS_CONFIG_FILE: ./configs/.gitleaks.toml
 SPELL_CSPELL_CONFIG_FILE: ./configs/.cspell.json

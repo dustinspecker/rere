@@ -1,3 +1,4 @@
+//nolint:goconst // I think constants make test data harder to glance
 package rere_test
 
 import (
@@ -6,6 +7,11 @@ import (
 	"github.com/dustinspecker/rere"
 	"github.com/onsi/gomega"
 	"github.com/qdm12/reprint"
+)
+
+const (
+	redacted  = "REDACTED"
+	rawString = "raw string"
 )
 
 type structWithoutRedactedFields struct {
@@ -48,6 +54,27 @@ type structWithInterface struct {
 	password any
 }
 
+type structWithEverything struct {
+	RawString   string
+	rawString   string
+	StringPtr   *string
+	stringPtr   *string
+	StringSlice []string
+	stringSlice []string
+	ByteSlice   []byte
+	byteSlice   []byte
+	Number      int
+	number      int
+	NumberPtr   *int
+	numberPtr   *int
+	StructSlice []structWithRedactedFields
+	structSlice []structWithRedactedFields
+}
+
+type complexStructHolder struct {
+	NestedStruct *structWithEverything
+}
+
 //nolint:funlen,maintidx // I'm okay with test functions with several statements of test data
 func TestRedactWithAllowList(t *testing.T) {
 	t.Parallel()
@@ -80,10 +107,10 @@ func TestRedactWithAllowList(t *testing.T) {
 			},
 			allowList: nil,
 			output: structWithRedactedFields{
-				Username:  "REDACTED",
-				username:  "REDACTED",
-				Password:  "REDACTED",
-				password:  "REDACTED",
+				Username:  redacted,
+				username:  redacted,
+				Password:  redacted,
+				password:  redacted,
 				byteSlice: nil,
 				stringPtr: nil,
 			},
@@ -100,10 +127,10 @@ func TestRedactWithAllowList(t *testing.T) {
 			},
 			allowList: nil,
 			output: &structWithRedactedFields{
-				Username:  "REDACTED",
-				username:  "REDACTED",
-				Password:  "REDACTED",
-				password:  "REDACTED",
+				Username:  redacted,
+				username:  redacted,
+				Password:  redacted,
+				password:  redacted,
 				byteSlice: nil,
 				stringPtr: nil,
 			},
@@ -146,8 +173,8 @@ func TestRedactWithAllowList(t *testing.T) {
 			},
 			allowList: nil,
 			output: structWithByteSlice{
-				Password: []byte("REDACTED"),
-				password: []byte("REDACTED"),
+				Password: []byte(redacted),
+				password: []byte(redacted),
 			},
 		},
 		{
@@ -169,7 +196,7 @@ func TestRedactWithAllowList(t *testing.T) {
 					Username:  "username",
 					username:  "username",
 					Password:  "password",
-					password:  "REDACTED",
+					password:  redacted,
 					byteSlice: nil,
 					stringPtr: nil,
 				},
@@ -177,10 +204,10 @@ func TestRedactWithAllowList(t *testing.T) {
 			allowList: nil,
 			output: structWithNestedStruct{
 				Nested: structWithRedactedFields{
-					Username:  "REDACTED",
-					username:  "REDACTED",
-					Password:  "REDACTED",
-					password:  "REDACTED",
+					Username:  redacted,
+					username:  redacted,
+					Password:  redacted,
+					password:  redacted,
 					byteSlice: nil,
 					stringPtr: nil,
 				},
@@ -190,25 +217,25 @@ func TestRedactWithAllowList(t *testing.T) {
 			name:      "handles maps",
 			input:     map[string]string{"password": "password"},
 			allowList: nil,
-			output:    map[string]string{"password": "REDACTED"},
+			output:    map[string]string{"password": redacted},
 		},
 		{
 			name:      "handles strings",
 			input:     "password",
 			allowList: nil,
-			output:    "REDACTED",
+			output:    redacted,
 		},
 		{
 			name:      "handles arrays",
 			input:     [1]string{"some_value"},
 			allowList: nil,
-			output:    [1]string{"REDACTED"},
+			output:    [1]string{redacted},
 		},
 		{
 			name:      "handles slices",
 			input:     []string{"password"},
 			allowList: nil,
-			output:    []string{"REDACTED"},
+			output:    []string{redacted},
 		},
 		{
 			name: "handles complex struct",
@@ -231,10 +258,10 @@ func TestRedactWithAllowList(t *testing.T) {
 				NestedStructs: []structWithNestedStruct{
 					{
 						Nested: structWithRedactedFields{
-							Username:  "REDACTED",
-							username:  "REDACTED",
-							Password:  "REDACTED",
-							password:  "REDACTED",
+							Username:  redacted,
+							username:  redacted,
+							Password:  redacted,
+							password:  redacted,
 							byteSlice: nil,
 							stringPtr: nil,
 						},
@@ -246,7 +273,7 @@ func TestRedactWithAllowList(t *testing.T) {
 			name: "handles nested pointers",
 			input: structWithNestedPointer{
 				Password: func() **string {
-					redacted := "REDACTED"
+					redacted := redacted
 					redactedPointer := &redacted
 
 					return &redactedPointer
@@ -255,7 +282,7 @@ func TestRedactWithAllowList(t *testing.T) {
 			allowList: nil,
 			output: structWithNestedPointer{
 				Password: func() **string {
-					redacted := "REDACTED"
+					redacted := redacted
 					redactedPointer := &redacted
 
 					return &redactedPointer
@@ -270,8 +297,8 @@ func TestRedactWithAllowList(t *testing.T) {
 			},
 			allowList: nil,
 			output: structWithInterface{
-				Password: "REDACTED",
-				password: "REDACTED",
+				Password: redacted,
+				password: redacted,
 			},
 		},
 		{
@@ -305,7 +332,7 @@ func TestRedactWithAllowList(t *testing.T) {
 			output: map[string]string{
 				"Username": "dustin",
 				"username": "dustin",
-				"Password": "REDACTED",
+				"Password": redacted,
 			},
 		},
 		{
@@ -325,12 +352,33 @@ func TestRedactWithAllowList(t *testing.T) {
 				Nested: structWithRedactedFields{
 					Username:  "username",
 					username:  "username",
-					Password:  "REDACTED",
-					password:  "REDACTED",
+					Password:  redacted,
+					password:  redacted,
 					byteSlice: []byte("password"),
 					stringPtr: nil,
 				},
 			},
+		},
+		{
+			name:      "redacts everything by default",
+			input:     getComplexStruct(),
+			allowList: nil,
+			output:    getRedactedComplexStruct(),
+		},
+		{
+			name:  "can avoid redacting everything included in allow list",
+			input: getComplexStruct(),
+			allowList: []string{
+				"RawString",
+				"StringPtr",
+				"StringSlice",
+				"ByteSlice",
+				"Number",
+				"NumberPtr",
+				"username",
+				"password",
+			},
+			output: getComplexStruct(),
 		},
 	}
 
@@ -365,13 +413,13 @@ func TestRedactWithDenyList(t *testing.T) {
 			name:     "redacts simple []byte value",
 			input:    []byte("hello"),
 			denyList: nil,
-			output:   []byte("REDACTED"),
+			output:   []byte(redacted),
 		},
 		{
 			name:     "redacts simple string value",
 			input:    "hello",
 			denyList: nil,
-			output:   "REDACTED",
+			output:   redacted,
 		},
 		{
 			name: "redacts only field names in deny list regardless of case",
@@ -387,8 +435,8 @@ func TestRedactWithDenyList(t *testing.T) {
 			output: structWithRedactedFields{
 				Username:  "username",
 				username:  "username",
-				Password:  "REDACTED",
-				password:  "REDACTED",
+				Password:  redacted,
+				password:  redacted,
 				byteSlice: nil,
 				stringPtr: nil,
 			},
@@ -403,8 +451,8 @@ func TestRedactWithDenyList(t *testing.T) {
 			denyList: []string{"password"},
 			output: map[string]string{
 				"Username": "username",
-				"Password": "REDACTED",
-				"password": "REDACTED",
+				"Password": redacted,
+				"password": redacted,
 			},
 		},
 		{
@@ -428,8 +476,8 @@ func TestRedactWithDenyList(t *testing.T) {
 				Nested: structWithRedactedFields{
 					Username:  "username",
 					username:  "username",
-					Password:  "REDACTED",
-					password:  "REDACTED",
+					Password:  redacted,
+					password:  redacted,
 					byteSlice: []byte("password"),
 					stringPtr: func() *string {
 						password := "password"
@@ -438,6 +486,27 @@ func TestRedactWithDenyList(t *testing.T) {
 					}(),
 				},
 			},
+		},
+		{
+			name:     "redacts nothing by default",
+			input:    getComplexStruct(),
+			denyList: nil,
+			output:   getComplexStruct(),
+		},
+		{
+			name:  "can redact every string and []byte included in deny list",
+			input: getComplexStruct(),
+			denyList: []string{
+				"RawString",
+				"StringPtr",
+				"StringSlice",
+				"ByteSlice",
+				"Number",
+				"NumberPtr",
+				"username",
+				"password",
+			},
+			output: getRedactedComplexStruct(),
 		},
 	}
 
@@ -455,5 +524,131 @@ func TestRedactWithDenyList(t *testing.T) {
 			g.Expect(&redacted).ToNot(gomega.BeIdenticalTo(&testCase.input), "RedactWithDenyList should create a deep copy")
 			g.Expect(testCase.input).To(gomega.Equal(originalInput), "RedactWithDenyList should not modify the provided input")
 		})
+	}
+}
+
+func getComplexStruct() complexStructHolder {
+	return complexStructHolder{
+		NestedStruct: &structWithEverything{
+			RawString: rawString,
+			rawString: rawString,
+			StringPtr: func() *string {
+				rawString := rawString
+
+				return &rawString
+			}(),
+			stringPtr: func() *string {
+				rawString := rawString
+
+				return &rawString
+			}(),
+			StringSlice: []string{"string slice", "string slice"},
+			stringSlice: []string{"string slice", "string slice"},
+			ByteSlice:   []byte("byte slice"),
+			byteSlice:   []byte("byte slice"),
+			Number:      42,
+			number:      42,
+			NumberPtr: func() *int {
+				number := 42
+
+				return &number
+			}(),
+			numberPtr: func() *int {
+				number := 42
+
+				return &number
+			}(),
+			StructSlice: []structWithRedactedFields{
+				{
+					Username:  "username",
+					username:  "username",
+					Password:  "password",
+					password:  "password",
+					byteSlice: []byte("password"),
+					stringPtr: func() *string {
+						password := "password"
+
+						return &password
+					}(),
+				},
+			},
+			structSlice: []structWithRedactedFields{
+				{
+					Username:  "username",
+					username:  "username",
+					Password:  "password",
+					password:  "password",
+					byteSlice: []byte("password"),
+					stringPtr: func() *string {
+						password := "password"
+
+						return &password
+					}(),
+				},
+			},
+		},
+	}
+}
+
+func getRedactedComplexStruct() complexStructHolder {
+	return complexStructHolder{
+		NestedStruct: &structWithEverything{
+			RawString: redacted,
+			rawString: redacted,
+			StringPtr: func() *string {
+				rawString := redacted
+
+				return &rawString
+			}(),
+			stringPtr: func() *string {
+				rawString := redacted
+
+				return &rawString
+			}(),
+			StringSlice: []string{redacted, redacted},
+			stringSlice: []string{redacted, redacted},
+			ByteSlice:   []byte(redacted),
+			byteSlice:   []byte(redacted),
+			Number:      42,
+			number:      42,
+			NumberPtr: func() *int {
+				number := 42
+
+				return &number
+			}(),
+			numberPtr: func() *int {
+				number := 42
+
+				return &number
+			}(),
+			StructSlice: []structWithRedactedFields{
+				{
+					Username:  redacted,
+					username:  redacted,
+					Password:  redacted,
+					password:  redacted,
+					byteSlice: []byte(redacted),
+					stringPtr: func() *string {
+						password := redacted
+
+						return &password
+					}(),
+				},
+			},
+			structSlice: []structWithRedactedFields{
+				{
+					Username:  redacted,
+					username:  redacted,
+					Password:  redacted,
+					password:  redacted,
+					byteSlice: []byte(redacted),
+					stringPtr: func() *string {
+						password := redacted
+
+						return &password
+					}(),
+				},
+			},
+		},
 	}
 }

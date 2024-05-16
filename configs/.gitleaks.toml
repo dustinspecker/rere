@@ -1,0 +1,5 @@
+[allowlist]
+# password is used in test data
+regexes = [
+  '''password''',
+]
