@@ -123,15 +123,7 @@ func redact(value reflect.Value, mode redactMode, fieldKeyNameList []string) {
 		for _, key := range reflectedValueElem.MapKeys() {
 			keyName := key.String()
 
-			// skip redacting keys in the allow list when in allow mode
-			inAllowList := mode == allow && slices.ContainsFunc(fieldKeyNameList, func(allowedKey string) bool {
-				return strings.EqualFold(allowedKey, keyName)
-			})
-			// skip redacting keys not in the deny list when in deny mode
-			notInDenyList := mode == deny && !slices.ContainsFunc(fieldKeyNameList, func(deniedKey string) bool {
-				return strings.EqualFold(deniedKey, keyName)
-			})
-			if inAllowList || notInDenyList {
+			if !shouldRedact(keyName, mode, fieldKeyNameList) {
 				continue
 			}
 
@@ -161,15 +153,7 @@ func redact(value reflect.Value, mode redactMode, fieldKeyNameList []string) {
 			)
 
 			if isStringType || isByteSliceType {
-				// skip redacting fields in the allow list when in allow mode
-				inAllowList := mode == allow && slices.ContainsFunc(fieldKeyNameList, func(allowedField string) bool {
-					return strings.EqualFold(allowedField, fieldName)
-				})
-				// skip redacting fields not in the deny list when in deny mode
-				notInDenyList := mode == deny && !slices.ContainsFunc(fieldKeyNameList, func(deniedField string) bool {
-					return strings.EqualFold(deniedField, fieldName)
-				})
-				if inAllowList || notInDenyList {
+				if !shouldRedact(fieldName, mode, fieldKeyNameList) {
 					continue
 				}
 			}
@@ -203,4 +187,17 @@ func redact(value reflect.Value, mode redactMode, fieldKeyNameList []string) {
 		// do nothing
 		break
 	}
+}
+
+func shouldRedact(fieldKeyName string, mode redactMode, fieldKeyNameList []string) bool {
+	// skip redacting fields in the allow list when in allow mode
+	inAllowList := mode == allow && slices.ContainsFunc(fieldKeyNameList, func(allowedField string) bool {
+		return strings.EqualFold(allowedField, fieldKeyName)
+	})
+	// skip redacting fields not in the deny list when in deny mode
+	notInDenyList := mode == deny && !slices.ContainsFunc(fieldKeyNameList, func(deniedField string) bool {
+		return strings.EqualFold(deniedField, fieldKeyName)
+	})
+
+	return !(inAllowList || notInDenyList)
 }
