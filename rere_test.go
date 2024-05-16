@@ -410,16 +410,16 @@ func TestRedactWithDenyList(t *testing.T) {
 		output   any
 	}{
 		{
-			name:     "redacts simple []byte value",
+			name:     "does not redact simple []byte value",
 			input:    []byte("hello"),
 			denyList: nil,
-			output:   []byte(redacted),
+			output:   []byte("hello"),
 		},
 		{
-			name:     "redacts simple string value",
+			name:     "does not redact simple string value",
 			input:    "hello",
 			denyList: nil,
-			output:   redacted,
+			output:   "hello",
 		},
 		{
 			name: "redacts only field names in deny list regardless of case",

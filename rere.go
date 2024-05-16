@@ -29,9 +29,9 @@ const (
 //
 // RedactWithAllowList will loop through elements in slices and arrays to redact using above approach.
 //
-// If RedactWithAllowList is provided a string or []byte value then it will redact the value with "REDACTED",
-// regardless of the allow list. The same is true when looping through types like []string when the field
-// name is not in the allow list.
+// If RedactWithAllowList is directly provided a string or []byte value then it will redact the value with "REDACTED",
+// regardless of the allow list. If a field or key value is a []string then the slice will be redacted if the field
+// or key name does not appear in the allow list.
 func RedactWithAllowList[T any](value T, allowList []string) T {
 	// create a deep copy of the provided value, so original value is not modified
 	//nolint:forcetypeassert // the type is correct and if not then reprint is broken and will be caught by unit tests
@@ -55,9 +55,9 @@ func RedactWithAllowList[T any](value T, allowList []string) T {
 //
 // RedactWithDenyList will loop through elements in slices and arrays to redact using above approach.
 //
-// If RedactWithDenyList is provided a string or []byte value then it will redact the value with "REDACTED",
-// regardless of the deny list. The same is true when looping through types like []string when the field
-// name is in the deny list.
+// If RedactWithDenyList is directly provided a string or []byte value then it will not redact the value,
+// regardless of the deny list. If a field or key value is a []string then the slice will be redacted if the field
+// or key name does appear in the deny list.
 //
 // NOTE: It is *STRONGLY* discouraged to use RedactWithDenyList in production code, as it is easy to accidentally
 // miss redacting sensitive information.
@@ -175,10 +175,10 @@ func redact(fieldKeyName string, value reflect.Value, mode redactMode, fieldKeyN
 }
 
 func shouldRedact(fieldKeyName string, mode redactMode, fieldKeyNameList []string) bool {
-	// redact when no field name
+	// redact when no field name and in allow mode, otherwise do not redact when in deny mode
 	// no field name means user provided a string or we're looping through a []string
 	if fieldKeyName == "" {
-		return true
+		return mode == allow
 	}
 
 	// skip redacting fields in the allow list when in allow mode
