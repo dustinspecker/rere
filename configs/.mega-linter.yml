@@ -27,4 +27,5 @@ POST_COMMANDS:
 COPYPASTE_JSCPD_CONFIG_FILE: ./configs/.jscpd.json
 GO_GOLANGCI_LINT_CONFIG_FILE: ./configs/.golangci.yml
 REPOSITORY_GITLEAKS_CONFIG_FILE: ./configs/.gitleaks.toml
+REPOSITORY_TRIVY_CONFIG_FILE: ./configs/.trivy.yml
 SPELL_CSPELL_CONFIG_FILE: ./configs/.cspell.json
